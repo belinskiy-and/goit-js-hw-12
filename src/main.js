@@ -42,21 +42,31 @@ async function handleSubmit(e) {
 
   showLoader();
 
-  const data = await getImagesByQuery(searchText, page, PER_PAGE);
-
   try {
+    const data = await getImagesByQuery(searchText, page, PER_PAGE);
+
+    if (data.hits.length === 0) {
+      iziToast.error({
+        message:
+          'Sorry, there are no images matching your search query. Please try again!',
+        position: 'topRight',
+      });
+
+      return;
+    }
+
     createGallery(data.hits);
 
     if (page * PER_PAGE < data.totalHits) {
       showLoadMoreButton();
     } else {
-      iziToast.error({
+      iziToast.info({
         message: `We're sorry, but you've reached the end of search results.`,
         position: 'topRight',
       });
     }
   } catch (error) {
-    iziToast.info({
+    iziToast.error({
       message: error.message,
       position: 'topRight',
     });
@@ -72,9 +82,9 @@ async function onLoadMore() {
   hideLoadMoreButton();
   showLoader();
 
-  const data = await getImagesByQuery(searchText, page, PER_PAGE);
-
   try {
+    const data = await getImagesByQuery(searchText, page, PER_PAGE);
+
     createGallery(data.hits);
 
     if (page * PER_PAGE < data.totalHits) {
@@ -91,7 +101,7 @@ async function onLoadMore() {
 
     window.scrollBy({
       left: 0,
-      top: itemHeight,
+      top: itemHeight * 2,
       behavior: 'smooth',
     });
   } catch (error) {
