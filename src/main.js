@@ -7,18 +7,29 @@ import {
   clearGallery,
   showLoader,
   hideLoader,
+  loadMoreButton,
+  showLoadMoreButton,
+  hideLoadMoreButton,
 } from './js/render-functions';
 
 const formElem = document.querySelector('.form');
 
-formElem.addEventListener('submit', handleSubmit);
+let page = 1;
+const PER_PAGE = 15;
+let searchText = '';
 
-function handleSubmit(e) {
+formElem.addEventListener('submit', handleSubmit);
+loadMoreButton.addEventListener('click', onLoadMore);
+
+async function handleSubmit(e) {
   e.preventDefault();
 
+  hideLoadMoreButton();
   clearGallery();
 
-  const searchText = e.target.elements['search-text'].value.trim();
+  page = 1;
+
+  searchText = e.target.elements['search-text'].value.trim();
 
   if (!searchText) {
     iziToast.error({
@@ -31,29 +42,63 @@ function handleSubmit(e) {
 
   showLoader();
 
-  const response = getImagesByQuery(searchText);
+  const data = await getImagesByQuery(searchText, page, PER_PAGE);
 
-  response
-    .then(images => {
-      if (images.length === 0) {
-        iziToast.error({
-          message:
-            'Sorry, there are no images matching your search query. Please try again!',
-          position: 'topRight',
-        });
+  try {
+    createGallery(data.hits);
 
-        return;
-      }
-      createGallery(images);
-    })
-    .catch(error => {
+    if (page * PER_PAGE < data.totalHits) {
+      showLoadMoreButton();
+    } else {
       iziToast.error({
-        message: error,
+        message: `We're sorry, but you've reached the end of search results.`,
         position: 'topRight',
       });
-    })
-    .finally(() => {
-      e.target.reset();
-      hideLoader();
+    }
+  } catch (error) {
+    iziToast.info({
+      message: error.message,
+      position: 'topRight',
     });
+  } finally {
+    e.target.reset();
+    hideLoader();
+  }
+}
+
+async function onLoadMore() {
+  page++;
+
+  hideLoadMoreButton();
+
+  const data = await getImagesByQuery(searchText, page, PER_PAGE);
+
+  try {
+    createGallery(data.hits);
+
+    if (page * PER_PAGE < data.totalHits) {
+      showLoadMoreButton();
+    } else {
+      iziToast.info({
+        message: `We're sorry, but you've reached the end of search results.`,
+        position: 'topRight',
+      });
+    }
+
+    const galleryItem = document.querySelector('.gallery-item');
+    const itemHeight = galleryItem.getBoundingClientRect().height;
+
+    window.scrollBy({
+      left: 0,
+      top: itemHeight,
+      behavior: 'smooth',
+    });
+  } catch (error) {
+    iziToast.info({
+      message: error.message,
+      position: 'topRight',
+    });
+  } finally {
+    hideLoader();
+  }
 }

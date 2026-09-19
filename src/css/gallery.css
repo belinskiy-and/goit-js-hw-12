@@ -38,7 +38,8 @@
   border-color: #000000;
 }
 
-.form button {
+.form button,
+button {
   cursor: pointer;
   border: none;
   border-radius: 8px;
@@ -58,8 +59,19 @@
 }
 
 .form button:hover,
-.form button:focus {
+.form button:focus,
+.button:hover,
+.button:focus {
   background-color: #6c8cff;
+}
+
+.button {
+  display: none;
+  margin: 20px auto 0;
+}
+
+.button.visible {
+  display: block;
 }
 
 .loader {
@@ -182,7 +194,7 @@
 
 .gallery-item {
   position: relative;
-  min-width: calc((100% - 2 * 24px) / 3);
+  width: calc((100% - 2 * 24px) / 3);
   height: 200px;
   border: 1px solid #808080;
 }
