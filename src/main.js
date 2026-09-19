@@ -70,6 +70,7 @@ async function onLoadMore() {
   page++;
 
   hideLoadMoreButton();
+  showLoader();
 
   const data = await getImagesByQuery(searchText, page, PER_PAGE);
 
